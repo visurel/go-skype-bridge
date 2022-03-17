@@ -406,9 +406,13 @@ func (user *User) monitorSession(ce *CommandEvent) {
 		user.Conn.Refresh = nil
 
 		// Automatic relogin
+		ce.Reply("Trying to log back in again, after session expired...")
 		err := ce.User.Login(ce, user.Conn.LoginInfo.Username, user.Conn.LoginInfo.Password)
 		if err == nil {
+			ce.Reply("Successfully logged back in.")
 			syncAll(ce.User, true)
+		} else {
+			ce.Reply("Failed to log back in: " + err.Error())
 		}
 	}
 	fmt.Println("monitorSession1", item, ok)
