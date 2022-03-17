@@ -56,7 +56,7 @@ type User struct {
 
 	mgmtCreateLock sync.Mutex
 
-	contactsPresence map[string]*skypeExt.Presence
+	contactsPresence      map[string]*skypeExt.Presence
 	currentCreateRoomName string
 }
 
@@ -398,13 +398,18 @@ func (user *User) monitorSession(ce *CommandEvent) {
 		} else {
 			ce.Reply("Session expired")
 			close(user.Conn.Refresh)
-			leavePortals(ce)
 		}
 	}
 
 	item, ok := <-user.Conn.Refresh
 	if !ok {
 		user.Conn.Refresh = nil
+
+		// Automatic relogin
+		err := ce.User.Login(ce, user.Conn.LoginInfo.Username, user.Conn.LoginInfo.Password)
+		if err == nil {
+			syncAll(ce.User, true)
+		}
 	}
 	fmt.Println("monitorSession1", item, ok)
 }
